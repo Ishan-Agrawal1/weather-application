@@ -3,8 +3,9 @@ import TextField from '@mui/material/TextField';
 import './SearchBox.css'
 import Button from '@mui/material/Button';
 import { useState } from 'react';
+import Info from './Info';
 
-export default function SearchBox() {
+export default function SearchBox( {updateInfo} ) {
     let [city, setCity] = useState("");
 
     const GEO_API_URL = "http://api.openweathermap.org/geo/1.0/direct"
@@ -14,21 +15,31 @@ export default function SearchBox() {
     let getWeather = async () => {
         let geores = await fetch(`${GEO_API_URL}?q=${city}&appid=${API_KEY}`);
         let jsonGeoRes = await geores.json();
-        console.log(jsonGeoRes)
 
         let weatherRes = await fetch(`${WEATHER_API_URL}?lat=${jsonGeoRes[0].lat}&lon=${jsonGeoRes[0].lon}&appid=${API_KEY}&units=metric`);
         let jsonRes = await weatherRes.json();
-        console.log(jsonRes.main);
+
+        let res = {
+            city : city,
+            feelslike : jsonRes.main.feels_like,
+            temperature : jsonRes.main.temp,
+            tempMin : jsonRes.main.temp_min,
+            tempMax : jsonRes.main.temp_max,
+            humidity : jsonRes.main.humidity
+        }
+
+        return res;
     }
 
     let handleChange = (evt) => {
         setCity(evt.target.value);
     }
 
-    let handleSubmit = (evt) => {
+    let handleSubmit = async (evt) => {
         evt.preventDefault();
         console.log(city);
-        getWeather();
+        let info = await getWeather();
+        updateInfo(info);
         setCity("");
     }
     return (
